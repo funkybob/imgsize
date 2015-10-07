@@ -17,13 +17,13 @@ def size_png(fin):
     # First chunk MUST be IHDR
     clen, ctype = struct.unpack('!I4s', fin.read(8))
     assert ctype == 'IHDR'
-    content = fin.read(clen)
+    data = fin.read(clen)
     fin.read(4)  # CRC
-    w, h, d, ct, comp, filt, ilace = struct.unpack('!IIccccc', content)
+    w, h, d, ct, comp, filt, ilace = struct.unpack('!IIccccc', data)
     return {
         'width': w,
         'height': h,
-        'depth': d,
+        'depth': ord(d),
     }
 
 SIZE['png'] = size_png
