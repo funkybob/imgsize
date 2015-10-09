@@ -9,24 +9,9 @@ def size(fname):
     t = imghdr.what(fname)
     if t:
         with open(fname, 'rb') as fin:
-            return dict(SIZE[t](fin), type=t)
-
-
-def size_png(fin):
-    fin.read(8)  # Skip the Magick Numbers
-    # First chunk MUST be IHDR
-    clen, ctype = struct.unpack('!I4s', fin.read(8))
-    assert ctype == 'IHDR'
-    data = fin.read(clen)
-    fin.read(4)  # CRC
-    w, h, d, ct, comp, filt, ilace = struct.unpack('!IIccccc', data)
-    return {
-        'width': w,
-        'height': h,
-        'depth': ord(d),
-    }
-
-SIZE['png'] = size_png
+            test = SIZE.get(t)
+            if test:
+                return dict(test(fin), type=t)
 
 
 def size_jpeg(fin):
@@ -50,6 +35,23 @@ def size_jpeg(fin):
 SIZE['jpeg'] = size_jpeg
 
 
+def size_png(fin):
+    fin.read(8)  # Skip the Magick Numbers
+    # First chunk MUST be IHDR
+    clen, ctype = struct.unpack('!I4s', fin.read(8))
+    assert ctype == 'IHDR'
+    data = fin.read(clen)
+    fin.read(4)  # CRC
+    w, h, d, ct, comp, filt, ilace = struct.unpack('!IIccccc', data)
+    return {
+        'width': w,
+        'height': h,
+        'depth': ord(d),
+    }
+
+SIZE['png'] = size_png
+
+
 def size_gif(fin):
     fin.read(6)  # Skip the Magick Numbers
     width, height = struct.unpack('<HH', fin.read(4))
@@ -59,6 +61,28 @@ def size_gif(fin):
     }
 
 SIZE['gif'] = size_gif
+
+# TIFF
+# SGI RGB
+
+# PBM
+# PGM
+# PPM
+def size_pnm(fin):
+    fin.read(2)  # Skip the Magick Numbers
+    # Remember to skip lines starting with # after a newline
+    width = height = 0
+    # Then read width<s>height
+    return {'width': width, 'height': height}
+
+SIZE['pbm'] = size_pnm
+SIZE['pgm'] = size_pnm
+SIZE['ppm'] = size_pnm
+
+
+# SUN Raster
+# XBM
+# BMP
 
 if __name__ == '__main__':
     import sys
