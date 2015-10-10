@@ -6,12 +6,13 @@ SIZE = {}
 
 
 def size(fname):
-    t = imghdr.what(fname)
-    if t:
-        with open(fname, 'rb') as fin:
-            test = SIZE.get(t)
-            if test:
-                return dict(test(fin), type=t)
+    with open(fname, 'rb') as fin:
+        t = imghdr.what(fname)
+        try:
+            func = SIZE[t]
+        except KeyError:
+            return
+        return dict(func(fin), type=t)
 
 
 def size_jpeg(fin):
@@ -21,9 +22,9 @@ def size_jpeg(fin):
         mkr, ll = struct.unpack('!2sH', fin.read(4))
         assert mkr[0] == '\xff'
         data = fin.read(ll - 2)
-        if mkr[1] not in ('\xc0', '\xc1', '\xc2', '\xc3', '\xc5', '\xc6',
+        if mkr[1] not in {'\xc0', '\xc1', '\xc2', '\xc3', '\xc5', '\xc6',
                           '\xc7', '\xc9', '\xca', '\xcb', '\xcd', '\xce',
-                          '\xcf'):
+                          '\xcf'}:
             continue
         bps, height, width = struct.unpack('!cHH', data[:5])
         break
@@ -62,17 +63,38 @@ def size_gif(fin):
 
 SIZE['gif'] = size_gif
 
+
 # TIFF
+def size_tiff(fin):
+    endian = fin.read(2)  # II = Intel, MM = Motorola
+    return
+
 # SGI RGB
+
 
 # PBM
 # PGM
 # PPM
 def size_pnm(fin):
     fin.read(2)  # Skip the Magick Numbers
-    # Remember to skip lines starting with # after a newline
-    width = height = 0
-    # Then read width<s>height
+    c = fin.read(1)
+    assert c.isspace()
+    # XXX Remember to skip lines starting with # after a newline
+    while c.isspace():
+        c = fin.read(1)
+    width = []
+    while not c.isspace():
+        width.append(c)
+        c = fin.read(1)
+    width = int(''.join(width))
+    while c.isspace():
+        c = fin.read(1)
+    height = []
+    while not c.isspace():
+        height.append(c)
+        c = fin.read(1)
+    height = int(''.join(height))
+
     return {'width': width, 'height': height}
 
 SIZE['pbm'] = size_pnm
