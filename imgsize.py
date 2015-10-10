@@ -1,7 +1,6 @@
 import imghdr
 import struct
 
-
 SIZE = {}
 
 
@@ -76,8 +75,49 @@ SIZE['gif'] = size_gif
 
 # TIFF
 def size_tiff(fin):
-    endian = fin.read(2)  # II = Intel, MM = Motorola
-    return
+    hdr = fin.read(8)
+    end = '<' if hdr[:2] == 'II' else '>'
+
+    # width is tag 256
+    # height is tag 257
+    width = height = None
+
+    ifd = struct.unpack(end + 'I', hdr[4:8])[0]
+    while (width is None and height is None) or ifd == 0:
+        fin.seek(ifd)
+        count = struct.unpack(end + 'H', fin.read(2))[0]
+        while count:
+            count -= 1
+            entry = fin.read(12)
+            tag, size, vals, offset = struct.unpack(end + 'HHII', entry)
+            if tag == 256:
+                vals = read_tag(fin, end, size, vals, offset)
+                width = vals[0]
+            elif tag == 257:
+                vals = read_tag(fin, end, size, vals, offset)
+                height = vals[0]
+
+        ifd = struct.unpack(end + 'I', fin.read(4))
+
+    return {'width': width, 'height': height}
+
+
+def read_tag(fin, end, size, vals, offset):
+    '''Read and decode a TIFF tag's data'''
+    sfmt = end + ''.join(['H' if size == 3 else 'I'] * vals)
+    bcount = struct.calcsize(sfmt)
+    if bcount <= 4:
+        # Special case -- data are in offset
+        result = struct.unpack(sfmt, struct.pack(end + 'I', offset)[:bcount])
+    else:
+        pos = fin.tell()
+        fin.seek(offset)
+        result = struct.unpack(sfmt, fin.read(bcount))
+        fin.seek(pos)
+    return result
+
+
+SIZE['tiff'] = size_tiff
 
 # SGI RGB
 
