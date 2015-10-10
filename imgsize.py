@@ -6,6 +6,16 @@ SIZE = {}
 
 
 def size(fname):
+    '''
+    Return a dict of data about a file if we can determine its file type.
+
+    fname::
+        Either a filename str, or a file object.
+
+    Returns::
+        dict() of details with at least 'width', 'height', and 'type'.
+        None if type is not known.
+    '''
     with open(fname, 'rb') as fin:
         t = imghdr.what(fname)
         try:
