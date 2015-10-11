@@ -1,8 +1,13 @@
+#!/usr/bin/env python
+
 import imghdr
 import struct
 
+# Map of imghdr type string to sizing function
 SIZE = {}
 
+# Map of imghdr type string to MIME type
+MIME = {}
 
 def size(fname):
     '''
@@ -21,7 +26,7 @@ def size(fname):
             func = SIZE[t]
         except KeyError:
             return
-        return dict(func(fin), type=t)
+        return dict(func(fin), type=t, mime=MIME.get(t))
 
 
 def size_jpeg(fin):
@@ -43,6 +48,7 @@ def size_jpeg(fin):
     }
 
 SIZE['jpeg'] = size_jpeg
+MIME['jpeg'] = 'image/jpeg'
 
 
 def size_png(fin):
@@ -60,6 +66,7 @@ def size_png(fin):
     }
 
 SIZE['png'] = size_png
+MIME['png'] = 'image/png'
 
 
 def size_gif(fin):
@@ -71,9 +78,9 @@ def size_gif(fin):
     }
 
 SIZE['gif'] = size_gif
+MIME['gif'] = 'image/gif'
 
 
-# TIFF
 def size_tiff(fin):
     hdr = fin.read(8)
     end = '<' if hdr[:2] == 'II' else '>'
@@ -118,6 +125,7 @@ def read_tag(fin, end, size, vals, offset):
 
 
 SIZE['tiff'] = size_tiff
+MIME['tiff'] = 'image/tiff'
 
 # SGI RGB
 
@@ -148,8 +156,11 @@ def size_pnm(fin):
     return {'width': width, 'height': height}
 
 SIZE['pbm'] = size_pnm
+MIME['pbm'] = 'image/x-portable-bitmap'
 SIZE['pgm'] = size_pnm
+MIME['pgm'] = 'image/x-portable-graymap'
 SIZE['ppm'] = size_pnm
+MIME['ppm'] = 'image/x-portable-pixmap'
 
 
 # SUN Raster
