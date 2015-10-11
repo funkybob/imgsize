@@ -6,6 +6,8 @@ only guess the type.
 This library goes a step further, determining the pixel dimensions of an image,
 based on the type determined by imghdr.
 
+When known, a 'mime' key will hold the MIME-type for this image format.
+
 ## Usage:
 
     >>> import imgsize
