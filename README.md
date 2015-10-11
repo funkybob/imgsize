@@ -19,3 +19,22 @@ based on the type determined by imghdr.
     ...
     >>> print(data)
     None
+
+## Supported Formats
+
+Currently the following formats are supported:
+
+- JPEG
+- PNG
+- GIF
+- TIFF
+- PNM (PBM, PGM, PPM) *
+
+* Currently does not support comments
+
+The `imghdr` library also recognises:
+
+- SGI RGB
+- SUN Raster
+- XBM
+- BMP
