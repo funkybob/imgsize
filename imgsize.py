@@ -84,6 +84,7 @@ def size_tiff(fin):
     width = height = None
 
     ifd = struct.unpack(end + 'I', hdr[4:8])[0]
+    data = {}
     while (width is None and height is None) or ifd == 0:
         fin.seek(ifd)
         count = struct.unpack(end + 'H', fin.read(2))[0]
@@ -97,15 +98,41 @@ def size_tiff(fin):
             elif tag == 257:
                 vals = read_tag(fin, end, size, vals, offset)
                 height = vals[0]
+            elif tag == 258:
+                vals = read_tag(fin, end, size, vals, offset)
+                data['depth'] = vals[0]
+            elif tag == 259:
+                vals = read_tag(fin, end, size, vals, offset)
+                data['compression'] = {
+                    1: 'None',
+                    2: 'CCITT Group 3',
+                    32773: 'PackBits',
+                }[vals[0]]
+            elif tag == 269:
+                vals = read_tag(fin, end, size, vals, offset)
+                data['document name'] = ''.join(vals[:-1])
 
         ifd = struct.unpack(end + 'I', fin.read(4))
 
-    return {'width': width, 'height': height}
-
+    data.update({'width': width, 'height': height})
+    return data
 
 def read_tag(fin, end, size, vals, offset):
     '''Read and decode a TIFF tag's data'''
-    sfmt = end + ''.join(['H' if size == 3 else 'I'] * vals)
+    SIZES = {
+        1: 'B',
+        2: 's',
+        3: 'H',
+        4: 'I',
+        6: 'b',
+        7: 'b',
+        8: 'h',
+        9: 'I',
+        11: 'f',
+        12: 'd',
+    }
+
+    sfmt = end + SIZES[size] * vals
     bcount = struct.calcsize(sfmt)
     if bcount <= 4:
         # Special case -- data are in offset
