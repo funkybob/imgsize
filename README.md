@@ -8,14 +8,14 @@ based on the type determined by imghdr.
 
 ## Usage:
 
-    >>> import imgsize
+    >>> import sizeof
 
-    >>> data = imgsize.size('myimage.png')
+    >>> data = sizeof.this('myimage.png')
     >>> print(data)
     {'width': 32, 'height': 64, 'type': 'png', 'depth': 8}
 
     >>> with open('unknown.txt', 'rb') as fin:
-    ...     data = imgsize.size(fin)
+    ...     data = sizeof.this(fin)
     ...
     >>> print(data)
     None

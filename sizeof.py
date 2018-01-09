@@ -6,7 +6,7 @@ import struct
 # Map of imghdr type string to sizing function
 SIZE = {}
 
-def size(fname):
+def this(fname):
     '''
     Return a dict of data about a file if we can determine its file type.
 
